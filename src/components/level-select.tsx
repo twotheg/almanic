@@ -10,12 +10,12 @@ interface LevelSelectProps {
 }
 
 export function LevelSelect({ currentLevel, completed, onSelect }: LevelSelectProps) {
-  const levels = Array.from({ length: 100 }, (_, i) => i + 1);
+  const levels = Array.from({ length: 300 }, (_, i) => i + 1);
 
   const getDifficulty = (level: number) => {
-    if (level <= 10) return "easy";
-    if (level <= 30) return "medium";
-    if (level <= 60) return "hard";
+    if (level <= 30) return "easy";
+    if (level <= 90) return "medium";
+    if (level <= 180) return "hard";
     return "expert";
   };
 
