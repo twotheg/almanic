@@ -1,8 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getLevel } from "@/lib/levels";
-import { createEmptyGrid, cloneGrid, validateGrid } from "@/lib/game";
+import {
+  createEmptyGrid,
+  cloneGrid,
+  validateGrid,
+  createsDisconnectedRegion,
+} from "@/lib/game";
 import { GameBoard } from "@/components/game-board";
 import { ColorPalette } from "@/components/color-palette";
 import { Timer } from "@/components/timer";
@@ -17,6 +22,7 @@ import {
   ChevronRight,
   Trophy,
   Download,
+  Play,
 } from "lucide-react";
 
 function getDeviceId(): string {
@@ -43,8 +49,30 @@ export default function HomePage() {
   const [showLevelSelect, setShowLevelSelect] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [deviceId, setDeviceId] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<number | null>(null);
 
   const level = useMemo(() => getLevel(currentLevel), [currentLevel]);
+
+  const usedColors = useMemo(
+    () => new Set(grid.flat().filter((v) => v > 0)),
+    [grid]
+  );
+
+  const nextLevel = useMemo(() => {
+    for (let i = 1; i <= 300; i++) {
+      if (!completedLevels.has(i)) return i;
+    }
+    return 300;
+  }, [completedLevels]);
+
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    if (toastTimer.current) {
+      window.clearTimeout(toastTimer.current);
+    }
+    toastTimer.current = window.setTimeout(() => setToast(null), 2600);
+  }, []);
 
   useEffect(() => {
     const id = getDeviceId();
@@ -122,6 +150,11 @@ export default function HomePage() {
     (r: number, c: number) => {
       if (completed) return;
 
+      if (!eraser && createsDisconnectedRegion(grid, r, c, selectedColor)) {
+        showToast("이미 사용 중인 색상입니다. 다른 색을 선택하거나 지우개를 사용하세요.");
+        return;
+      }
+
       setGrid((prev) => {
         const next = cloneGrid(prev);
         const value = eraser ? 0 : selectedColor;
@@ -143,7 +176,17 @@ export default function HomePage() {
         return next;
       });
     },
-    [completed, eraser, selectedColor, level, timerRunning, elapsedSeconds, saveCompleted]
+    [
+      completed,
+      eraser,
+      selectedColor,
+      level,
+      timerRunning,
+      elapsedSeconds,
+      saveCompleted,
+      grid,
+      showToast,
+    ]
   );
 
   const handleUndo = () => {
@@ -232,6 +275,39 @@ export default function HomePage() {
         </div>
       </header>
 
+      <section className="mb-4 w-full max-w-md rounded-2xl border border-slate-700 bg-slate-800 px-5 py-4 shadow-lg">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-semibold text-slate-300">Progress</span>
+          <span className="font-bold text-white">
+            {completedLevels.size} / 300 cleared
+          </span>
+        </div>
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-700">
+          <div
+            className="h-full rounded-full bg-green-500 transition-all"
+            style={{ width: `${Math.min(100, (completedLevels.size / 300) * 100)}%` }}
+          />
+        </div>
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setCurrentLevel(nextLevel)}
+            className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-500"
+          >
+            <Play size={14} />
+            Continue (Lv.{nextLevel})
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowLevelSelect(true)}
+            className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-slate-700 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-slate-600"
+          >
+            <Grid3X3 size={14} />
+            Level Select
+          </button>
+        </div>
+      </section>
+
       <section className="mb-4 flex w-full max-w-md items-center justify-between rounded-2xl border border-slate-700 bg-slate-800 px-5 py-3 shadow-lg">
         <div>
           <button
@@ -268,6 +344,7 @@ export default function HomePage() {
           count={Math.max(...level.solution.flat())}
           selected={selectedColor}
           eraser={eraser}
+          usedColors={usedColors}
           onSelect={(id) => {
             setSelectedColor(id);
             setEraser(false);
@@ -356,6 +433,12 @@ export default function HomePage() {
               <ChevronRight size={18} />
             </button>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="pointer-events-none fixed bottom-8 left-1/2 z-[70] -translate-x-1/2 whitespace-nowrap rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white shadow-2xl">
+          {toast}
         </div>
       )}
     </main>
