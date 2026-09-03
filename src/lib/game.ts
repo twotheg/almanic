@@ -151,6 +151,38 @@ export function validateGrid(
   return { valid: completed, errors, completed };
 }
 
+export function wouldDisconnectOnRectFill(
+  grid: number[][],
+  minR: number,
+  maxR: number,
+  minC: number,
+  maxC: number,
+  color: number
+): boolean {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  let exists = false;
+  let touches = false;
+  let allInside = true;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] !== color) continue;
+      exists = true;
+
+      const inside = r >= minR && r <= maxR && c >= minC && c <= maxC;
+      if (!inside) allInside = false;
+
+      const adjToRect =
+        ((r === minR - 1 || r === maxR + 1) && c >= minC && c <= maxC) ||
+        ((c === minC - 1 || c === maxC + 1) && r >= minR && r <= maxR);
+      if (adjToRect) touches = true;
+    }
+  }
+
+  return exists && !touches && !allInside;
+}
+
 export function createsDisconnectedRegion(
   grid: number[][],
   r: number,
