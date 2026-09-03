@@ -21,7 +21,10 @@ export function LevelSelect({ currentLevel, completed, onSelect }: LevelSelectPr
 
   return (
     <div className="mx-auto w-full max-w-md">
-      <h2 className="mb-4 text-center text-xl font-bold text-white">Select Level</h2>
+      <h2 className="mb-1 text-center text-xl font-bold text-white">Select Level</h2>
+      <p className="mb-4 text-center text-sm text-slate-400">
+        {completed.size} / 300 cleared
+      </p>
       <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-7">
         {levels.map((level) => {
           const isLocked = level > Math.max(1, ...Array.from(completed)) + 1 && !completed.has(level);
