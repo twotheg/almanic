@@ -6,7 +6,8 @@ import {
   createEmptyGrid,
   cloneGrid,
   validateGrid,
-  createsDisconnectedRegion,
+  wouldDisconnectOnRectFill,
+  getColor,
 } from "@/lib/game";
 import { GameBoard } from "@/components/game-board";
 import { ColorPalette } from "@/components/color-palette";
@@ -146,22 +147,40 @@ export default function HomePage() {
     [deviceId]
   );
 
-  const handleCellDraw = useCallback(
-    (r: number, c: number) => {
+  const handleRectSelect = useCallback(
+    (r1: number, c1: number, r2: number, c2: number) => {
       if (completed) return;
 
-      if (!eraser && createsDisconnectedRegion(grid, r, c, selectedColor)) {
+      const minR = Math.min(r1, r2);
+      const maxR = Math.max(r1, r2);
+      const minC = Math.min(c1, c2);
+      const maxC = Math.max(c1, c2);
+      const value = eraser ? 0 : selectedColor;
+
+      if (
+        !eraser &&
+        wouldDisconnectOnRectFill(grid, minR, maxR, minC, maxC, selectedColor)
+      ) {
         showToast("이미 사용 중인 색상입니다. 다른 색을 선택하거나 지우개를 사용하세요.");
         return;
       }
 
       setGrid((prev) => {
-        const next = cloneGrid(prev);
-        const value = eraser ? 0 : selectedColor;
-        if (next[r][c] === value) return prev;
+        let changed = false;
+        for (let r = minR; r <= maxR && !changed; r++) {
+          for (let c = minC; c <= maxC && !changed; c++) {
+            if (prev[r][c] !== value) changed = true;
+          }
+        }
+        if (!changed) return prev;
 
+        const next = cloneGrid(prev);
         setHistory((h) => [...h.slice(-49), cloneGrid(prev)]);
-        next[r][c] = value;
+        for (let r = minR; r <= maxR; r++) {
+          for (let c = minC; c <= maxC; c++) {
+            next[r][c] = value;
+          }
+        }
 
         if (!timerRunning) setTimerRunning(true);
 
@@ -335,7 +354,9 @@ export default function HomePage() {
           grid={grid}
           numbers={level.numbers}
           completed={completed}
-          onCellDraw={handleCellDraw}
+          previewColor={eraser ? null : getColor(selectedColor - 1)}
+          previewIsEraser={eraser}
+          onRectSelect={handleRectSelect}
         />
       </div>
 
