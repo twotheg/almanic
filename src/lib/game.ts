@@ -58,57 +58,84 @@ export function validateGrid(
     }
   }
 
-  // Group cells by region id
-  const regions = new Map<number, { r: number; c: number }[]>();
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const id = grid[r][c];
-      if (!regions.has(id)) {
-        regions.set(id, []);
-      }
-      regions.get(id)!.push({ r, c });
-    }
-  }
-
-  // Check each number cell
   const numberMap = new Map<string, NumberCell>();
   for (const num of numbers) {
     numberMap.set(`${num.r},${num.c}`, num);
   }
 
+  const visited: boolean[][] = Array(rows)
+    .fill(null)
+    .map(() => Array(cols).fill(false));
   const checkedNumbers = new Set<string>();
 
-  for (const [id, cells] of regions) {
-    // Check rectangle
-    const minR = Math.min(...cells.map((c) => c.r));
-    const maxR = Math.max(...cells.map((c) => c.r));
-    const minC = Math.min(...cells.map((c) => c.c));
-    const maxC = Math.max(...cells.map((c) => c.c));
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (visited[r][c]) continue;
 
-    const expectedArea = (maxR - minR + 1) * (maxC - minC + 1);
-    if (expectedArea !== cells.length) {
-      errors.push(`Region is not a rectangle`);
-      continue;
-    }
+      const colorId = grid[r][c];
+      const stack: { r: number; c: number }[] = [{ r, c }];
+      const cells: { r: number; c: number }[] = [];
+      visited[r][c] = true;
 
-    // Find number in this region
-    const regionNumbers: NumberCell[] = [];
-    for (const cell of cells) {
-      const key = `${cell.r},${cell.c}`;
-      if (numberMap.has(key)) {
-        regionNumbers.push(numberMap.get(key)!);
-        checkedNumbers.add(key);
+      while (stack.length > 0) {
+        const cell = stack.pop()!;
+        cells.push(cell);
+
+        const dirs = [
+          { dr: -1, dc: 0 },
+          { dr: 1, dc: 0 },
+          { dr: 0, dc: -1 },
+          { dr: 0, dc: 1 },
+        ];
+
+        for (const { dr, dc } of dirs) {
+          const nr = cell.r + dr;
+          const nc = cell.c + dc;
+          if (
+            nr >= 0 &&
+            nr < rows &&
+            nc >= 0 &&
+            nc < cols &&
+            !visited[nr][nc] &&
+            grid[nr][nc] === colorId
+          ) {
+            visited[nr][nc] = true;
+            stack.push({ r: nr, c: nc });
+          }
+        }
       }
-    }
 
-    if (regionNumbers.length !== 1) {
-      errors.push(`Each rectangle must contain exactly one number`);
-      continue;
-    }
+      // Check rectangle
+      const minR = Math.min(...cells.map((cell) => cell.r));
+      const maxR = Math.max(...cells.map((cell) => cell.r));
+      const minC = Math.min(...cells.map((cell) => cell.c));
+      const maxC = Math.max(...cells.map((cell) => cell.c));
 
-    const num = regionNumbers[0];
-    if (num.value !== cells.length) {
-      errors.push(`Rectangle size does not match number ${num.value}`);
+      const expectedArea = (maxR - minR + 1) * (maxC - minC + 1);
+      if (expectedArea !== cells.length) {
+        errors.push(`Region is not a rectangle`);
+        continue;
+      }
+
+      // Find number in this region
+      const regionNumbers: NumberCell[] = [];
+      for (const cell of cells) {
+        const key = `${cell.r},${cell.c}`;
+        if (numberMap.has(key)) {
+          regionNumbers.push(numberMap.get(key)!);
+          checkedNumbers.add(key);
+        }
+      }
+
+      if (regionNumbers.length !== 1) {
+        errors.push(`Each rectangle must contain exactly one number`);
+        continue;
+      }
+
+      const num = regionNumbers[0];
+      if (num.value !== cells.length) {
+        errors.push(`Rectangle size does not match number ${num.value}`);
+      }
     }
   }
 
@@ -122,6 +149,30 @@ export function validateGrid(
 
   const completed = errors.length === 0;
   return { valid: completed, errors, completed };
+}
+
+export function createsDisconnectedRegion(
+  grid: number[][],
+  r: number,
+  c: number,
+  color: number
+): boolean {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  let colorExists = false;
+
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      if (grid[i][j] !== color) continue;
+      colorExists = true;
+      const isAdjacent = Math.abs(i - r) + Math.abs(j - c) === 1;
+      if (isAdjacent) {
+        return false;
+      }
+    }
+  }
+
+  return colorExists;
 }
 
 export function isRectangle(cells: { r: number; c: number }[]): boolean {
