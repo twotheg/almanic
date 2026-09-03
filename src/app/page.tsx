@@ -190,7 +190,7 @@ export default function HomePage() {
   };
 
   const handleNextLevel = () => {
-    if (currentLevel < 100) {
+    if (currentLevel < 300) {
       setCurrentLevel((l) => l + 1);
     } else {
       setShowComplete(false);
@@ -224,7 +224,7 @@ export default function HomePage() {
       <header className="mb-6 flex w-full max-w-md items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">The Almanic</h1>
-          <p className="text-xs text-slate-400">Shikaku Puzzle • 100 Levels</p>
+          <p className="text-xs text-slate-400">Shikaku Puzzle • 300 Levels</p>
         </div>
         <div className="flex items-center gap-2">
           <InstallButton />
