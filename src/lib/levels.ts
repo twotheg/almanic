@@ -81,17 +81,17 @@ function generateLevel(id: number): Level {
   let targetPieces: number;
   let difficulty: Level["difficulty"];
 
-  if (id <= 10) {
+  if (id <= 30) {
     targetPieces = rng.range(4, 6);
     minArea = 4;
     maxArea = 25;
     difficulty = "easy";
-  } else if (id <= 30) {
+  } else if (id <= 90) {
     targetPieces = rng.range(6, 10);
     minArea = 2;
     maxArea = 16;
     difficulty = "medium";
-  } else if (id <= 60) {
+  } else if (id <= 180) {
     targetPieces = rng.range(10, 15);
     minArea = 2;
     maxArea = 12;
@@ -253,14 +253,14 @@ function generateLevel(id: number): Level {
 }
 
 export function getLevel(id: number): Level {
-  if (id < 1 || id > 100) {
-    throw new Error("Level must be between 1 and 100");
+  if (id < 1 || id > 300) {
+    throw new Error("Level must be between 1 and 300");
   }
   return generateLevel(id);
 }
 
 export function getAllLevels(): Level[] {
-  return Array.from({ length: 100 }, (_, i) => getLevel(i + 1));
+  return Array.from({ length: 300 }, (_, i) => getLevel(i + 1));
 }
 
 export function getDifficultyColor(difficulty: Level["difficulty"]): string {
