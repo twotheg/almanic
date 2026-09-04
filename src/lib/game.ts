@@ -32,7 +32,10 @@ export const COLORS = [
 ];
 
 export function getColor(index: number): string {
-  return COLORS[index % COLORS.length];
+  // Golden-angle hue spacing keeps every region color visually distinct,
+  // no matter how many pieces a level has.
+  const hue = Math.round((index * 137.508) % 360);
+  return `hsl(${hue} 70% 62%)`;
 }
 
 export interface ValidationResult {
