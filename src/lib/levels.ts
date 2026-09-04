@@ -1,3 +1,34 @@
+export type Mode = "easy" | "medium" | "hard";
+
+export const MODE_ORDER: Mode[] = ["easy", "medium", "hard"];
+
+export const MODES: Record<
+  Mode,
+  { label: string; size: number; count: number; sub: string }
+> = {
+  easy: { label: "Easy", size: 7, count: 100, sub: "7×7" },
+  medium: { label: "Medium", size: 9, count: 200, sub: "9×9" },
+  hard: { label: "Hard", size: 11, count: 200, sub: "11×11" },
+};
+
+// Server progress stores a single levelId; encode the mode as an offset.
+export const MODE_OFFSET: Record<Mode, number> = {
+  easy: 0,
+  medium: 1000,
+  hard: 2000,
+};
+
+export function storedLevelId(mode: Mode, level: number): number {
+  return MODE_OFFSET[mode] + level;
+}
+
+export function modeOfStored(id: number): { mode: Mode; level: number } {
+  if (id >= MODE_OFFSET.hard) return { mode: "hard", level: id - MODE_OFFSET.hard };
+  if (id >= MODE_OFFSET.medium)
+    return { mode: "medium", level: id - MODE_OFFSET.medium };
+  return { mode: "easy", level: id };
+}
+
 export interface NumberCell {
   r: number;
   c: number;
@@ -6,10 +37,11 @@ export interface NumberCell {
 
 export interface Level {
   id: number;
+  mode: Mode;
   size: number;
   numbers: NumberCell[];
   solution: number[][];
-  difficulty: "easy" | "medium" | "hard" | "expert";
+  difficulty: Mode;
 }
 
 class SeededRandom {
@@ -72,36 +104,33 @@ function getAllRectSizes(
   return sizes;
 }
 
-function generateLevel(id: number): Level {
-  const size = 7;
-  const rng = new SeededRandom(id * 12345 + 98765);
-
-  let minArea: number;
-  let maxArea: number;
-  let targetPieces: number;
-  let difficulty: Level["difficulty"];
-
-  if (id <= 30) {
-    targetPieces = rng.range(4, 6);
-    minArea = 4;
-    maxArea = 25;
-    difficulty = "easy";
-  } else if (id <= 90) {
-    targetPieces = rng.range(6, 10);
-    minArea = 2;
-    maxArea = 16;
-    difficulty = "medium";
-  } else if (id <= 180) {
-    targetPieces = rng.range(10, 15);
-    minArea = 2;
-    maxArea = 12;
-    difficulty = "hard";
-  } else {
-    targetPieces = rng.range(15, 22);
-    minArea = 1;
-    maxArea = 8;
-    difficulty = "expert";
+function tierFor(
+  mode: Mode,
+  t: number
+): { pieces: [number, number]; minArea: number; maxArea: number } {
+  if (mode === "easy") {
+    if (t < 0.3) return { pieces: [4, 6], minArea: 4, maxArea: 25 };
+    if (t < 0.7) return { pieces: [6, 10], minArea: 2, maxArea: 16 };
+    return { pieces: [10, 15], minArea: 2, maxArea: 12 };
   }
+  if (mode === "medium") {
+    if (t < 0.3) return { pieces: [6, 10], minArea: 3, maxArea: 25 };
+    if (t < 0.7) return { pieces: [10, 16], minArea: 2, maxArea: 20 };
+    return { pieces: [16, 24], minArea: 2, maxArea: 16 };
+  }
+  if (t < 0.3) return { pieces: [10, 16], minArea: 3, maxArea: 30 };
+  if (t < 0.7) return { pieces: [16, 24], minArea: 2, maxArea: 20 };
+  return { pieces: [24, 32], minArea: 2, maxArea: 14 };
+}
+
+function generateLevel(mode: Mode, level: number): Level {
+  const cfg = MODES[mode];
+  const size = cfg.size;
+  const rng = new SeededRandom((MODE_OFFSET[mode] + level) * 12345 + 98765);
+  const t = (level - 1) / Math.max(1, cfg.count - 1);
+  const tier = tierFor(mode, t);
+  const targetPieces = rng.range(tier.pieces[0], tier.pieces[1]);
+  const { minArea, maxArea } = tier;
 
   let solution: number[][] = Array(size)
     .fill(null)
@@ -119,7 +148,6 @@ function generateLevel(id: number): Level {
     let filled = 0;
 
     while (filled < size * size) {
-      // Find next empty cell
       let startR = -1;
       let startC = -1;
       for (let r = 0; r < size && startR === -1; r++) {
@@ -134,15 +162,22 @@ function generateLevel(id: number): Level {
 
       if (startR === -1) break;
 
-      // Determine preferred max area based on remaining pieces target
       const remainingCells = size * size - filled;
       const remainingPieces = Math.max(1, targetPieces - pieces.length);
-      const preferredMax = Math.min(maxArea, Math.max(minArea, Math.floor(remainingCells / remainingPieces) + 2));
+      const preferredMax = Math.min(
+        maxArea,
+        Math.max(minArea, Math.floor(remainingCells / remainingPieces) + 2)
+      );
       const preferredMin = Math.min(minArea, preferredMax);
 
-      const candidates = getAllRectSizes(solution, startR, startC, preferredMax, preferredMin);
+      const candidates = getAllRectSizes(
+        solution,
+        startR,
+        startC,
+        preferredMax,
+        preferredMin
+      );
       if (candidates.length === 0) {
-        // fallback to any size that fits
         const fallback = getAllRectSizes(solution, startR, startC, remainingCells, 1);
         if (fallback.length === 0) break;
         const rect = rng.pick(fallback);
@@ -154,10 +189,14 @@ function generateLevel(id: number): Level {
         pieces.push({ r: startR, c: startC, h: rect.h, w: rect.w });
         filled += rect.area;
       } else {
-        // Prefer sizes closer to target average
         const targetAvg = remainingCells / remainingPieces;
-        candidates.sort((a, b) => Math.abs(a.area - targetAvg) - Math.abs(b.area - targetAvg));
-        const topCandidates = candidates.slice(0, Math.max(1, Math.floor(candidates.length / 2)));
+        candidates.sort(
+          (a, b) => Math.abs(a.area - targetAvg) - Math.abs(b.area - targetAvg)
+        );
+        const topCandidates = candidates.slice(
+          0,
+          Math.max(1, Math.floor(candidates.length / 2))
+        );
         const rect = rng.pick(topCandidates);
         for (let i = startR; i < startR + rect.h; i++) {
           for (let j = startC; j < startC + rect.w; j++) {
@@ -176,7 +215,6 @@ function generateLevel(id: number): Level {
     attempts++;
   }
 
-  // Reassign region IDs to be sequential (some IDs may be missing due to resets)
   const remap = new Map<number, number>();
   let nextId = 1;
   for (let r = 0; r < size; r++) {
@@ -188,9 +226,10 @@ function generateLevel(id: number): Level {
     }
   }
 
-  const finalSolution: number[][] = solution.map((row) => row.map((id) => remap.get(id)!));
+  const finalSolution: number[][] = solution.map((row) =>
+    row.map((id) => remap.get(id)!)
+  );
 
-  // Rebuild pieces from final solution
   const pieceMap = new Map<number, { r: number; c: number; h: number; w: number }>();
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
@@ -207,11 +246,9 @@ function generateLevel(id: number): Level {
     }
   }
 
-  // Place numbers in each piece
   const numbers: NumberCell[] = [];
-  for (const [id, rect] of pieceMap) {
+  for (const [, rect] of pieceMap) {
     const value = rect.h * rect.w;
-    // Prefer corners/edges for number placement
     const candidates: { r: number; c: number; weight: number }[] = [];
     for (let r = rect.r; r < rect.r + rect.h; r++) {
       for (let c = rect.c; c < rect.c + rect.w; c++) {
@@ -244,26 +281,28 @@ function generateLevel(id: number): Level {
   }
 
   return {
-    id,
+    id: level,
+    mode,
     size,
     numbers,
     solution: finalSolution,
-    difficulty,
+    difficulty: mode,
   };
 }
 
-export function getLevel(id: number): Level {
-  if (id < 1 || id > 300) {
-    throw new Error("Level must be between 1 and 300");
+export function getLevel(mode: Mode, level: number): Level {
+  const cfg = MODES[mode];
+  if (level < 1 || level > cfg.count) {
+    throw new Error(`Level must be between 1 and ${cfg.count} for mode ${mode}`);
   }
-  return generateLevel(id);
+  return generateLevel(mode, level);
 }
 
-export function getAllLevels(): Level[] {
-  return Array.from({ length: 300 }, (_, i) => getLevel(i + 1));
+export function getAllLevels(mode: Mode): Level[] {
+  return Array.from({ length: MODES[mode].count }, (_, i) => getLevel(mode, i + 1));
 }
 
-export function getDifficultyColor(difficulty: Level["difficulty"]): string {
+export function getDifficultyColor(difficulty: Mode): string {
   switch (difficulty) {
     case "easy":
       return "#22c55e";
@@ -271,8 +310,6 @@ export function getDifficultyColor(difficulty: Level["difficulty"]): string {
       return "#3b82f6";
     case "hard":
       return "#f59e0b";
-    case "expert":
-      return "#ef4444";
     default:
       return "#6b7280";
   }
