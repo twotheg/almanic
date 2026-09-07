@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Lightbulb, X } from "lucide-react";
+import { AdSlot, adsenseEnabled, REWARDED_SLOT } from "@/components/adsense";
 
 interface RewardedAdModalProps {
   open: boolean;
@@ -47,21 +48,30 @@ export function RewardedAdModal({ open, onReward, onClose }: RewardedAdModalProp
           </button>
         </div>
 
-        {/* Ad creative placeholder. Replace this block with a real ad unit
-            (e.g. Google AdSense / AdMob via TWA) when credentials are ready. */}
-        <div className="relative flex h-56 flex-col items-center justify-center gap-3 bg-gradient-to-br from-indigo-600 via-purple-600 to-rose-500 px-6 text-center">
-          <div className="grid grid-cols-3 gap-1">
-            <span className="h-8 w-8 rounded bg-yellow-400" />
-            <span className="h-8 w-8 rounded bg-green-400" />
-            <span className="h-8 w-8 rounded bg-blue-400" />
-            <span className="col-span-2 h-8 rounded bg-red-400" />
-            <span className="h-8 w-8 rounded bg-purple-300" />
+        {/* Real AdSense unit when configured; otherwise a built-in promo. */}
+        {adsenseEnabled && REWARDED_SLOT ? (
+          <div className="flex h-64 items-center justify-center bg-slate-800 px-3">
+            <AdSlot
+              slot={REWARDED_SLOT}
+              style={{ display: "block", width: 300, height: 250 }}
+              format="rectangle"
+            />
           </div>
-          <p className="text-lg font-black text-white drop-shadow">블럭 매칭 게임</p>
-          <p className="text-xs font-medium text-white/90">
-            숫자에 맞춰 블럭을 나누는 퍼즐! 지금 무료 플레이
-          </p>
-        </div>
+        ) : (
+          <div className="relative flex h-56 flex-col items-center justify-center gap-3 bg-gradient-to-br from-indigo-600 via-purple-600 to-rose-500 px-6 text-center">
+            <div className="grid grid-cols-3 gap-1">
+              <span className="h-8 w-8 rounded bg-yellow-400" />
+              <span className="h-8 w-8 rounded bg-green-400" />
+              <span className="h-8 w-8 rounded bg-blue-400" />
+              <span className="col-span-2 h-8 rounded bg-red-400" />
+              <span className="h-8 w-8 rounded bg-purple-300" />
+            </div>
+            <p className="text-lg font-black text-white drop-shadow">블럭 매칭 게임</p>
+            <p className="text-xs font-medium text-white/90">
+              숫자에 맞춰 블럭을 나누는 퍼즐! 지금 무료 플레이
+            </p>
+          </div>
+        )}
 
         <div className="p-4">
           <button

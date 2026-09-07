@@ -27,9 +27,20 @@ export const viewport: Viewport = {
 
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
+const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
+      <head>
+        {adsenseClient && adsenseClient.startsWith("ca-pub-") && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
       <body className="bg-slate-950 text-slate-100 antialiased">
         {children}
         <ServiceWorkerRegister />
