@@ -14,10 +14,14 @@ export function BannerAd() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-[57px] z-30 flex justify-center bg-slate-950/90 px-2 py-1">
       {showReal ? (
-        <div className="pointer-events-auto w-full max-w-md overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
+        <div className="pointer-events-auto relative h-[54px] w-full max-w-md overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
+          <span className="absolute left-1 top-1 z-10 rounded bg-slate-600 px-1 text-[8px] font-bold uppercase text-slate-300">
+            Ad
+          </span>
           <AdSlot
             slot={BANNER_SLOT}
-            style={{ display: "block", minHeight: 50 }}
+            style={{ display: "block", width: "100%", height: 50 }}
+            format="horizontal"
           />
         </div>
       ) : (

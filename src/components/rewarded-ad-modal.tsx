@@ -50,7 +50,7 @@ export function RewardedAdModal({ open, onReward, onClose }: RewardedAdModalProp
 
         {/* Real AdSense unit when configured; otherwise a built-in promo. */}
         {adsenseEnabled && REWARDED_SLOT ? (
-          <div className="flex h-64 items-center justify-center bg-slate-800 px-3">
+          <div className="flex h-64 items-center justify-center overflow-hidden bg-slate-800 px-3">
             <AdSlot
               slot={REWARDED_SLOT}
               style={{ display: "block", width: 300, height: 250 }}
