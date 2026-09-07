@@ -32,7 +32,6 @@ import {
   Grid3X3,
   ChevronRight,
   Trophy,
-  Download,
 } from "lucide-react";
 
 type CompletedByMode = Record<Mode, Set<number>>;
@@ -365,10 +364,6 @@ export default function HomePage() {
     setShowLevelSelect(false);
   };
 
-  const handleDownload = () => {
-    window.location.href = "/api/download";
-  };
-
   const modeColor = getDifficultyColor(mode);
 
   return (
@@ -478,14 +473,6 @@ export default function HomePage() {
           >
             <Lightbulb size={14} />
             Hint
-          </button>
-          <button
-            type="button"
-            onClick={handleDownload}
-            className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-slate-700 px-2 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-600"
-          >
-            <Download size={14} />
-            Source
           </button>
         </div>
       </div>
