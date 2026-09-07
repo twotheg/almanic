@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "The Almanic - Shikaku Puzzle",
-    short_name: "Almanic",
+    name: "블럭 매칭 게임",
+    short_name: "블럭매칭",
     description:
-      "A minimalist Shikaku brain puzzle. Divide the grid into rectangles matching the numbers. 100 levels of logic, focus, and fun.",
+      "숫자에 맞춰 블럭을 사각형으로 나누는 논리 퍼즐! 간단하고 똑똑한 챌린지로 사고력을 날카롭게. 3가지 모드, 500 레벨.",
     start_url: "/",
     display: "standalone",
     background_color: "#0f172a",

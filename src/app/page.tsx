@@ -23,6 +23,8 @@ import { Timer } from "@/components/timer";
 import { LevelSelect } from "@/components/level-select";
 import { InstallButton } from "@/components/install-button";
 import { PushManager } from "@/components/push-manager";
+import { RewardedAdModal } from "@/components/rewarded-ad-modal";
+import { BannerAd } from "@/components/banner-ad";
 import {
   RotateCcw,
   Undo2,
@@ -69,6 +71,7 @@ export default function HomePage() {
   const [showComplete, setShowComplete] = useState(false);
   const [deviceId, setDeviceId] = useState("");
   const [toast, setToast] = useState<string | null>(null);
+  const [showAd, setShowAd] = useState(false);
   const toastTimer = useRef<number | null>(null);
 
   const level = useMemo(() => getLevel(mode, levelNum), [mode, levelNum]);
@@ -156,6 +159,10 @@ export default function HomePage() {
     setTimerRunning(false);
     setTimerKey((k) => k + 1);
     setElapsedSeconds(0);
+    // Always start a new stage with color 1 and the eraser off,
+    // regardless of what was selected in the previous stage.
+    setSelectedColor(1);
+    setEraser(false);
     localStorage.setItem(
       "almanic-current-v2",
       JSON.stringify({ mode, level: levelNum })
@@ -287,28 +294,60 @@ export default function HomePage() {
     setElapsedSeconds(0);
   };
 
-  const handleHint = () => {
+  const handleHintRequest = () => {
+    if (completed) return;
+    setShowAd(true);
+  };
+
+  const applyHint = useCallback(() => {
     const { solution, size } = level;
-    const candidates: { r: number; c: number }[] = [];
+
+    // Group solution cells by region id
+    const regionCells = new Map<number, { r: number; c: number }[]>();
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
-        if (grid[r][c] !== solution[r][c]) {
-          candidates.push({ r, c });
-        }
+        const id = solution[r][c];
+        if (!regionCells.has(id)) regionCells.set(id, []);
+        regionCells.get(id)!.push({ r, c });
       }
     }
-    if (candidates.length === 0) return;
-    const pick = candidates[Math.floor(Math.random() * candidates.length)];
-    const correctColor = solution[pick.r][pick.c];
-    setSelectedColor(correctColor);
+
+    // Pick a random region that is not fully correct yet
+    const wrongRegions = [...regionCells.entries()].filter(([, cells]) =>
+      cells.some((cell) => grid[cell.r][cell.c] !== solution[cell.r][cell.c])
+    );
+    if (wrongRegions.length === 0) return;
+
+    const [regionId, cells] =
+      wrongRegions[Math.floor(Math.random() * wrongRegions.length)];
+
+    setSelectedColor(regionId);
     setEraser(false);
 
     setGrid((prev) => {
       const next = cloneGrid(prev);
       setHistory((h) => [...h.slice(-49), cloneGrid(prev)]);
-      next[pick.r][pick.c] = correctColor;
+      for (const cell of cells) {
+        next[cell.r][cell.c] = regionId;
+      }
+
+      if (!timerRunning) setTimerRunning(true);
+
+      const result = validateGrid(next, level.numbers);
+      if (result.completed) {
+        setCompleted(true);
+        setTimerRunning(false);
+        setShowComplete(true);
+        saveCompleted(mode, levelNum, elapsedSeconds);
+      }
+
       return next;
     });
+  }, [grid, level, timerRunning, saveCompleted, mode, levelNum, elapsedSeconds]);
+
+  const handleAdReward = () => {
+    setShowAd(false);
+    applyHint();
   };
 
   const handleNextLevel = () => {
@@ -333,10 +372,10 @@ export default function HomePage() {
   const modeColor = getDifficultyColor(mode);
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-slate-950 px-4 pb-24 pt-6 text-slate-100">
+    <main className="flex min-h-screen flex-col items-center bg-slate-950 px-4 pb-40 pt-6 text-slate-100">
       <header className="mb-4 flex w-full max-w-md items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">The Almanic</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">블럭 매칭 게임</h1>
           <p className="text-xs text-slate-400">Shikaku Puzzle • 3 Modes • 500 Levels</p>
         </div>
         <div className="flex items-center gap-2">
@@ -411,6 +450,8 @@ export default function HomePage() {
         />
       </div>
 
+      <BannerAd />
+
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800 bg-slate-900/95 px-3 py-2 backdrop-blur">
         <div className="mx-auto flex max-w-md items-center justify-center gap-2">
           <button
@@ -432,7 +473,7 @@ export default function HomePage() {
           </button>
           <button
             type="button"
-            onClick={handleHint}
+            onClick={handleHintRequest}
             className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-slate-700 px-2 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-600"
           >
             <Lightbulb size={14} />
@@ -494,6 +535,12 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      <RewardedAdModal
+        open={showAd}
+        onReward={handleAdReward}
+        onClose={() => setShowAd(false)}
+      />
 
       {toast && (
         <div className="pointer-events-none fixed bottom-20 left-1/2 z-[70] -translate-x-1/2 whitespace-nowrap rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white shadow-2xl">

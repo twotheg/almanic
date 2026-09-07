@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "The Almanic - Shikaku Puzzle",
+  title: "블럭 매칭 게임 - Shikaku Puzzle",
   description:
-    "A minimalist Shikaku brain puzzle. Divide the grid into rectangles matching the numbers. 100 levels of logic, focus, and fun.",
+    "숫자에 맞춰 블럭을 사각형으로 나누는 논리 퍼즐! 간단하고 똑똑한 챌린지로 사고력을 날카롭게. 3가지 모드, 500 레벨.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "The Almanic",
+    title: "블럭매칭",
     statusBarStyle: "black-translucent",
   },
   icons: {
