@@ -22,9 +22,15 @@ import { ColorPalette } from "@/components/color-palette";
 import { Timer } from "@/components/timer";
 import { LevelSelect } from "@/components/level-select";
 import { InstallButton } from "@/components/install-button";
-import { PushManager } from "@/components/push-manager";
+import { SoundToggle } from "@/components/sound-toggle";
 import { RewardedAdModal } from "@/components/rewarded-ad-modal";
 import { BannerAd } from "@/components/banner-ad";
+import {
+  playTap,
+  playErase,
+  playError,
+  playComplete,
+} from "@/lib/sound";
 import {
   RotateCcw,
   Undo2,
@@ -87,6 +93,10 @@ export default function HomePage() {
     }
     toastTimer.current = window.setTimeout(() => setToast(null), 2600);
   }, []);
+
+  useEffect(() => {
+    if (completed) playComplete();
+  }, [completed]);
 
   useEffect(() => {
     const id = getDeviceId();
@@ -226,9 +236,13 @@ export default function HomePage() {
         !eraser &&
         wouldDisconnectOnRectFill(grid, minR, maxR, minC, maxC, selectedColor)
       ) {
+        playError();
         showToast("이미 사용 중인 색상입니다. 다른 색을 선택하거나 지우개를 사용하세요.");
         return;
       }
+
+      if (eraser) playErase();
+      else playTap();
 
       setGrid((prev) => {
         let changed = false;
@@ -367,7 +381,7 @@ export default function HomePage() {
   const modeColor = getDifficultyColor(mode);
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-slate-950 px-4 pb-40 pt-6 text-slate-100">
+    <main className="flex min-h-screen flex-col items-center bg-slate-950 px-4 pb-40 pt-2 text-slate-100">
       <header className="mb-4 flex w-full max-w-md items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">블럭 매칭 게임</h1>
@@ -375,7 +389,7 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-2">
           <InstallButton />
-          <PushManager />
+          <SoundToggle />
         </div>
       </header>
 
@@ -447,7 +461,10 @@ export default function HomePage() {
 
       <BannerAd />
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800 bg-slate-900/95 px-3 py-2 backdrop-blur">
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800 bg-slate-900/95 px-3 pt-2 backdrop-blur"
+        style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}
+      >
         <div className="mx-auto flex max-w-md items-center justify-center gap-2">
           <button
             type="button"
