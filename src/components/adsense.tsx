@@ -14,13 +14,20 @@ interface AdSlotProps {
   className?: string;
   style?: React.CSSProperties;
   format?: string;
+  fullWidthResponsive?: boolean;
 }
 
 /**
  * Renders a real Google AdSense unit. The adsbygoogle script is loaded
  * statically in app/layout.tsx when NEXT_PUBLIC_ADSENSE_CLIENT is set.
  */
-export function AdSlot({ slot, className, style, format = "auto" }: AdSlotProps) {
+export function AdSlot({
+  slot,
+  className,
+  style,
+  format = "auto",
+  fullWidthResponsive = true,
+}: AdSlotProps) {
   useEffect(() => {
     try {
       const w = window as unknown as { adsbygoogle?: unknown[] };
@@ -37,7 +44,7 @@ export function AdSlot({ slot, className, style, format = "auto" }: AdSlotProps)
       data-ad-client={ADSENSE_CLIENT}
       data-ad-slot={slot}
       data-ad-format={format}
-      data-full-width-responsive="true"
+      data-full-width-responsive={fullWidthResponsive ? "true" : "false"}
     />
   );
 }
