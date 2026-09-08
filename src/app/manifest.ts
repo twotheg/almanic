@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "숫자에 맞춰 블럭을 사각형으로 나누는 논리 퍼즐! 간단하고 똑똑한 챌린지로 사고력을 날카롭게. 3가지 모드, 500 레벨.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0f172a",
-    theme_color: "#0f172a",
+    background_color: "#020617",
+    theme_color: "#020617",
     orientation: "portrait",
     icons: [
       {
