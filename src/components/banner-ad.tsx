@@ -22,6 +22,7 @@ export function BannerAd() {
             slot={BANNER_SLOT}
             style={{ display: "block", width: "100%", height: 50 }}
             format="horizontal"
+            fullWidthResponsive={false}
           />
         </div>
       ) : (
