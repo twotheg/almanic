@@ -22,7 +22,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#0f172a",
+  themeColor: "#020617",
+  viewportFit: "cover",
+  colorScheme: "dark",
 };
 
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
@@ -31,7 +33,7 @@ const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className="bg-slate-950">
       <head>
         {adsenseClient && adsenseClient.startsWith("ca-pub-") && (
           <script
