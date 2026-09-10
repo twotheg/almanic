@@ -25,6 +25,7 @@ import { InstallButton } from "@/components/install-button";
 import { SoundToggle } from "@/components/sound-toggle";
 import { RewardedAdModal } from "@/components/rewarded-ad-modal";
 import { BannerAd } from "@/components/banner-ad";
+import { Tutorial } from "@/components/tutorial";
 import {
   playTap,
   playErase,
@@ -433,7 +434,7 @@ export default function HomePage() {
         />
       </section>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md" data-tut="board">
         <GameBoard
           size={level.size}
           grid={grid}
@@ -445,7 +446,7 @@ export default function HomePage() {
         />
       </div>
 
-      <div className="mt-4 w-full max-w-md">
+      <div className="mt-4 w-full max-w-md" data-tut="palette">
         <ColorPalette
           count={Math.max(...level.solution.flat())}
           selected={selectedColor}
@@ -464,6 +465,7 @@ export default function HomePage() {
       <div
         className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800 bg-slate-900/95 px-3 pt-2 backdrop-blur"
         style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}
+        data-tut="actions"
       >
         <div className="mx-auto flex max-w-md items-center justify-center gap-2">
           <button
@@ -539,6 +541,8 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      <Tutorial />
 
       <RewardedAdModal
         open={showAd}
