@@ -35,12 +35,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko" className="bg-slate-950">
       <head>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4424569297437395"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        {adsenseClient && adsenseClient.startsWith("ca-pub-") && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            crossOrigin="anonymous"
+          />
+        )}
       </head>
       <body className="bg-slate-950 text-slate-100 antialiased">
         {children}
