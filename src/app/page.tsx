@@ -555,6 +555,29 @@ export default function HomePage() {
           {toast}
         </div>
       )}
+     <section className="mx-auto max-w-3xl px-4 py-12 text-center">
+  <h2 className="mb-3 text-2xl font-bold text-white">
+    숫자에 맞춰 블록을 나누는 논리 퍼즐
+  </h2>
+  <p className="mb-6 leading-relaxed text-slate-300">
+    블록 매칭 게임은 Shikaku 스타일의 두뇌 퍼즐입니다. 격자판의 숫자를
+    바탕으로 직사각형 영역을 그려 모든 칸을 채우세요.
+  </p>
+  <div className="flex flex-wrap justify-center gap-3">
+    <a
+      href="/how-to-play"
+      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+    >
+      게임 방법
+    </a>
+    <a
+      href="/tips"
+      className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600"
+    >
+      팁과 공략
+    </a>
+  </div>
+</section> 
     </main>
   );
 }
