@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.twotheg.mygame_block_matching",
+      "sha256_cert_fingerprints":
+        ["D8:37:AC:2B:91:4A:D7:CD:69:4A:F3:45:AD:8B:A9:F5:1D:E6:52:05:0E:D0:44:C2:26:A0:A4:C4:7B:72:CE:66"]
+    }
+  }
+]
