@@ -1,11 +1,18 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.twotheg.mygame_block_matching",
-      "sha256_cert_fingerprints":
-        ["D8:37:AC:2B:91:4A:D7:CD:69:4A:F3:45:AD:8B:A9:F5:1D:E6:52:05:0E:D0:44:C2:26:A0:A4:C4:7B:72:CE:66"]
+      "sha256_cert_fingerprints": [
+        "3A:3A:48:96:C3:E6:76:A6:81:43:41:41:A7:4B:B7:0E:3D:D2:F3:C1:B5:9C:8C:AF:C8:51:29:14:E3:0F:35:FA",
+        "D8:D9:0C:BA:8F:8A:67:D6:BD:42:1E:66:52:26:38:13:EA:34:D3:BA:4C:DF:8A:42:E4:F9:A3:FB:25:4E:5A:8B",
+        "D8:37:AC:2B:91:4A:D7:CD:69:4A:F3:45:AD:8B:A9:F5:1D:E6:52:05:0E:D0:44:C2:26:A0:A4:C4:7B:72:CE:66",
+        "C9:85:60:CD:2E:1B:79:7E:5D:57:55:46:A0:C9:72:03:FB:B3:D5:82:6F:12:76:BE:4D:FC:58:84:9A:CE:17:8A"
+      ]
     }
   }
 ]
